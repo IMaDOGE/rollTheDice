@@ -1,0 +1,131 @@
+package hu.unideb.inf.mobil2023.projekt;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+public class MainActivity extends AppCompatActivity {
+
+    private SensorManager sensorManager;
+    private Sensor accelerometerSensor;
+
+    private final Dice roll = new Dice();
+
+    private TextView displayThisRoll;
+    private TextView previousRolls;
+    private ImageView rollResultPicture;
+
+    private int numberOfRolls = 0;
+
+    private long lastShakeTime = 0;
+    private final float shakeSens = 18f;
+    private final int shakeDelayMs = 600;
+    private final int rollHistoryLineLength = 18;
+    private final int rollHistoryNumOfLines = 10;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        displayThisRoll = findViewById(R.id.rollValue);
+        previousRolls = findViewById(R.id.rollAccRecords);
+        rollResultPicture = findViewById(R.id.dicePicture);
+
+        rollResultPicture.setImageResource(R.drawable.dice0);
+
+        sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+        accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        SensorEventListener accelerometerListener = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent sensorEvent)
+            {
+                long currentTime = System.currentTimeMillis();
+
+                if ((currentTime - lastShakeTime) > shakeDelayMs)
+                {
+                    double x = sensorEvent.values[0];
+                    double y = sensorEvent.values[1];
+                    double z = sensorEvent.values[2];
+
+                    double acceleration = calculateAcc(x,y,z) - SensorManager.GRAVITY_EARTH;
+
+                    if (acceleration > shakeSens)
+                    {
+                        roll();
+
+                        lastShakeTime = currentTime;
+                    }
+                }
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+            }
+        };
+        sensorManager.registerListener(accelerometerListener, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    public double calculateAcc(double axisX, double axisY, double axisZ)
+    {
+        return Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
+    }
+
+    private void roll()
+    {
+        if (numberOfRolls == 0)
+        {
+            previousRolls.setText("");
+        }
+
+        if (numberOfRolls >= (rollHistoryNumOfLines * rollHistoryLineLength))
+        {
+            numberOfRolls = 0;
+
+            previousRolls.setText("");
+        }
+
+        int thisRoll = roll.Rtd();
+
+        numberOfRolls++;
+
+        displayThisRoll.setText("" + thisRoll);
+        previousRolls.append("" + thisRoll + ", ");
+        setPicture(thisRoll);
+
+        if (numberOfRolls % rollHistoryLineLength == 0)
+        {
+            previousRolls.append("\n");
+        }
+    }
+
+    private void setPicture(int n)
+    {
+        switch (n)
+        {
+            case 1: rollResultPicture.setImageResource(R.drawable.dice1); break;
+            case 2: rollResultPicture.setImageResource(R.drawable.dice2); break;
+            case 3: rollResultPicture.setImageResource(R.drawable.dice3); break;
+            case 4: rollResultPicture.setImageResource(R.drawable.dice4); break;
+            case 5: rollResultPicture.setImageResource(R.drawable.dice5); break;
+            case 6: rollResultPicture.setImageResource(R.drawable.dice6); break;
+            
+            default: rollResultPicture.setImageResource(R.drawable.dice0); break;
+        }
+    }
+
+    public void rollButtonClicked(View view) {
+        roll();
+    }
+}
+
+

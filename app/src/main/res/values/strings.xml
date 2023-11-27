@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Roll the dice!</string>
+    <string name="roll_value">Shake me to roll the dice!</string>
+    <string name="rtd">Roll The Dice</string>
+    <string name="current_acceleration_value">(Current acceleration value)</string>
+    <string name="max_acceleration">Max recorded acceleration. Shake once to display!</string>
+    <string name="roll_history">(nothing to show yet)</string>
+    <string name="dice_picture">Picture of a dice</string>
+</resources>
